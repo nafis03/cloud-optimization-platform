@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import request, jsonify
+import boto3
 
 import sqlite3
 
@@ -17,8 +18,9 @@ def hello():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.form
-    print(data.get('access_key'))
-    print(data.get('secret_key'))
+    session = boto3.Session(
+    aws_access_key_id=data.get('access_key'),
+    aws_secret_access_key=data.get('secret_key'))
     return jsonify(isError= False,
                     message= "Success",
                     statusCode= 200,
