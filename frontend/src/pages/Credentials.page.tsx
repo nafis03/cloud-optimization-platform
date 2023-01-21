@@ -20,6 +20,7 @@ export default function CredentialsPage() {
 
     const submitForm = async (values: any) => {
         setUserCredentials(values);
+        setRequestStatus('loading');
         try {
             await login(values);
             setRequestStatus('succeeded');
@@ -53,9 +54,9 @@ export default function CredentialsPage() {
                         >
                             Enter
                         </Button>
-                        { requestStatus === 'loading' && <Loader />}
                         { requestStatus === 'failed' && <Text color="red">Request Failed</Text> }
                     </form>
+                    { requestStatus === 'loading' && <Loader />}
                 </Card>
             </Center>
         </Container>
