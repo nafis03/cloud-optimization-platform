@@ -17,10 +17,14 @@ def hello():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.form
+    data = request.get_json()
     session = boto3.Session(
-    aws_access_key_id=data.get('access_key'),
-    aws_secret_access_key=data.get('secret_key'))
+    aws_access_key_id=data['access_key'],
+    aws_secret_access_key=data['secret_key'])
+    s3_resource = session.resource('s3')
+    print("Hello, Amazon S3! Let's list your buckets:")
+    for bucket in s3_resource.buckets.all():
+        print(bucket.name)
     return jsonify(isError= False,
                     message= "Success",
                     statusCode= 200,
