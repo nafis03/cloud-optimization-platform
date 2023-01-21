@@ -12,7 +12,6 @@ def get_db_connection():
 def hello():
     return '<h1>Hello, World!</h1>'
 
-<<<<<<< HEAD
 @app.route('/db')
 def db():
     conn = get_db_connection()
@@ -20,7 +19,3 @@ def db():
     conn.close()
     print(posts[0]['id'])
     return '<h1>Hello, World!</h1>'
-
-    
-=======
->>>>>>> 643656025f33113e9b970a5fdcbbb47c6d8e468a
