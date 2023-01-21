@@ -27,6 +27,15 @@ def login():
 @app.route('/db')
 def db():
     conn = get_db_connection()
-    posts = conn.execute('SELECT * FROM users').fetchall()
+    users = conn.execute('SELECT * FROM users').fetchall()
+    usersData = {}
+    for user in users:
+        usersData[user['username']] = user['id']
     conn.close()
-    return '<h1>Hello, World!</h1>'
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= usersData), 200
+
+
+
+

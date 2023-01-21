@@ -1,4 +1,5 @@
 import boto3
+from decouple import config
 
 def hello_s3():
     """
@@ -8,8 +9,8 @@ def hello_s3():
     and config files.
     """
     session = boto3.Session(
-    aws_access_key_id="id",
-    aws_secret_access_key="accessKey",
+    aws_access_key_id=config('ACCESS_KEY'),
+    aws_secret_access_key=config('SECRET_ACCESS_KEY'),
 )
     s3_resource = session.resource('s3')
     print("Hello, Amazon S3! Let's list your buckets:")
