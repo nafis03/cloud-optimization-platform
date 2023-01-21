@@ -1,7 +1,12 @@
-import { Button, Card, Center, Container, PasswordInput, Title } from "@mantine/core";
+import { Button, Card, Center, Container, Loader, PasswordInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useContext, useState } from "react";
+import { login } from "../api/auth.api";
+import { UserContext } from "../App";
 
 export default function CredentialsPage() {
+    const { setUserCredentials } = useContext(UserContext);
+    const [loading, setLoading] = useState<boolean>(false);
     const form = useForm({
         initialValues: {
             accessKeyId: '',
@@ -9,8 +14,16 @@ export default function CredentialsPage() {
         },
     });
 
-    const submitForm = (values: any) => {
-        console.log(values);
+    const submitForm = async (values: any) => {
+        setUserCredentials(values);
+        try {
+            setLoading(true);
+            login(values);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -36,6 +49,7 @@ export default function CredentialsPage() {
                         >
                             Enter
                         </Button>
+                        { loading && <Loader />}
                     </form>
                 </Card>
             </Center>
