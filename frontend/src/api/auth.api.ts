@@ -11,5 +11,6 @@ export const login = async (credentials: AWSCredentials) => {
         method: 'POST',
         body: JSON.stringify(body),
     });
-    console.log(result);
+    
+    if (result.status !== 200) throw new Error('request failed');
 };

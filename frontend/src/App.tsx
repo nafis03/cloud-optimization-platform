@@ -5,6 +5,7 @@ import { AppShell, Header, MantineProvider, Navbar } from '@mantine/core';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import CredentialsPage from './pages/Credentials.page';
 import { AWSCredentials } from './types/credentials.types';
+import DashboardPage from './pages/Dashboard.page';
 
 export const UserContext = createContext<any>(null);
 
@@ -27,6 +28,7 @@ function App() {
           >
             <Routes>
               <Route path="/" element={<CredentialsPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
             </Routes>
           </AppShell>
         </BrowserRouter>
