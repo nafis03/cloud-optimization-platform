@@ -1,12 +1,16 @@
-import { Button, Card, Center, Container, Loader, PasswordInput, Title } from "@mantine/core";
+import { Button, Card, Center, Container, Loader, PasswordInput, Text, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../api/auth.api";
 import { UserContext } from "../App";
 
+export type RequestStatus = 'idle' | 'failed' | 'loading' | 'succeeded'
+
 export default function CredentialsPage() {
     const { setUserCredentials } = useContext(UserContext);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
+    const navigate = useNavigate();
     const form = useForm({
         initialValues: {
             accessKeyId: '',
@@ -16,13 +20,14 @@ export default function CredentialsPage() {
 
     const submitForm = async (values: any) => {
         setUserCredentials(values);
+        setRequestStatus('loading');
         try {
-            setLoading(true);
-            login(values);
+            await login(values);
+            setRequestStatus('succeeded');
+            navigate('/dashboard');
         } catch (e) {
+            setRequestStatus('failed');
             console.log(e);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -49,8 +54,9 @@ export default function CredentialsPage() {
                         >
                             Enter
                         </Button>
-                        { loading && <Loader />}
+                        { requestStatus === 'failed' && <Text color="red">Request Failed</Text> }
                     </form>
+                    { requestStatus === 'loading' && <Loader />}
                 </Card>
             </Center>
         </Container>

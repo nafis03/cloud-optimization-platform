@@ -7,9 +7,14 @@ export const login = async (credentials: AWSCredentials) => {
         'secret_key': credentials.secretAccessKey,
     };
 
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
     const result = await fetch('/login', {
         method: 'POST',
         body: JSON.stringify(body),
+        headers,
     });
-    console.log(result);
+    
+    if (result.status !== 200) throw new Error('request failed');
 };
