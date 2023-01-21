@@ -21,10 +21,36 @@ def login():
     session = boto3.Session(
     aws_access_key_id=data['access_key'],
     aws_secret_access_key=data['secret_key'])
-    s3_resource = session.resource('s3')
-    print("Hello, Amazon S3! Let's list your buckets:")
-    for bucket in s3_resource.buckets.all():
-        print(bucket.name)
+    ec2_resource = session.client('ec2', region_name='us-west-2')
+    # response = ec2_resource.request_spot_instances(
+    #     SpotPrice='0.10',
+    #     DryRun=False,
+    #     # ClientToken must be unique
+    #     ClientToken='strin-0asssoog',
+    #     InstanceCount=1,
+    #     Type='one-time',
+    #     LaunchSpecification={
+    #         'ImageId': 'ami-095413544ce52437d',
+    #         'KeyName': 'awskey',
+    #         'SecurityGroups': ['default'],
+    #         'InstanceType': 't2.micro',
+    #         'EbsOptimized': True,
+    #         'Monitoring': {
+    #             'Enabled': True
+    #         },
+    #         'SecurityGroupIds': [
+    #             'sg-0b549f5ce144da1be',
+    #         ]
+    #     }
+    # )
+    # print(response)
+    res = ec2_resource.describe_spot_instance_requests(
+        DryRun=False,
+        SpotInstanceRequestIds=[
+            'sir-zij6h97j',
+        ],
+    )
+    print(res)
     return jsonify(isError= False,
                     message= "Success",
                     statusCode= 200,
@@ -41,7 +67,6 @@ def db():
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= usersData), 200
-
 
 
 
