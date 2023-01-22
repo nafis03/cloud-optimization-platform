@@ -82,7 +82,6 @@ def dbUsers():
     users = conn.execute('SELECT * FROM users').fetchall()
     usersData = {}
     for user in users:
-        print(user['access_key'])
         usersData[user['username']] = user['id']
     conn.close()
     return jsonify( message= "Success",
@@ -101,8 +100,25 @@ def dbReqs():
                     statusCode= 200,
                     data= reqsData), 200
 
+@app.route('/db/instances')
+def dbInstances():
+    conn = get_db_connection()
+    reqs = conn.execute('SELECT * FROM instances').fetchall()
+    reqsData = []
+    for req in reqs:
+        reqsData.append(req['id'])
+    conn.close()
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= reqsData), 200
 
-def poll_for_terminations(ec2_resource):
+@app.route('/testTerm')
+def poll_for_terminations():
+    access_key, secret_key = get_access_and_secret('tommyc')
+    session = boto3.Session(
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key)
+    ec2_resource = session.client('ec2', region_name='us-west-2')
     conn = get_db_connection()
     requests = conn.execute('SELECT * FROM requests').fetchall()
     sids = []
@@ -114,7 +130,59 @@ def poll_for_terminations(ec2_resource):
         DryRun=False,
         SpotInstanceRequestIds=sids,
     )
-    print(res)
+    conn = get_db_connection()
+    curr = conn.cursor()
+    allReqs = res['SpotInstanceRequests']
+    for sir in allReqs:
+        status = sir['Status']
+        if status['Code'] == 'fulfilled':
+            curr.execute("INSERT INTO instances (id, sir, user) VALUES (?, ?, ?)",(sir['InstanceId'], sir['SpotInstanceRequestId'], 'tommyc'))
+            curr.execute("UPDATE requests SET current_status = 'active' WHERE id=?", (sir['SpotInstanceRequestId'],))
+            # update db with instance
+            continue
+        if status['Code'] == 'capacity-not-available':
+            # Re make request
+            continue
+        if status['Code'] == 'instance-terminated-by-user' or status['Code'] == 'spot-instance-terminated-by-user':
+            # delete from table
+            continue
+        if status['Code'] == 'instance-terminated-no-capacity':
+            # relaunch instance
+            continue
+        if status['Code'] == 'marked-for-termination':
+            # relaunch instance
+            continue
+        if status['Code'] == 'instance-terminated-by-experiment':
+            # relaunch instance
+            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
+            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
+            response = ec2_resource.run_instances(
+                MaxCount= 1,
+                MinCount=1,
+                InstanceType='t2.micro',
+                ImageId='ami-095413544ce52437d',
+                KeyName='awskey',
+                Monitoring= {
+                    'Enabled':True,
+                },
+                InstanceMarketOptions={
+                    'MarketType': 'spot',
+                    'SpotOptions': {
+                        'MaxPrice': '.05',
+                        'SpotInstanceType': 'one-time',
+                    }
+                },
+            )
+            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
+
+            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
+                    (spot_request_id, 'open', 'tommyc')
+            )
+
+    conn.commit()
+    conn.close()
+    return jsonify( message= "Success",
+                    statusCode= 200), 200
 
 @app.route('/stopInstance')
 def stopInstance():

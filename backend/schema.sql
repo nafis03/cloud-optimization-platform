@@ -17,3 +17,13 @@ CREATE TABLE requests (
     user TEXT NOT NULL,
     FOREIGN KEY(user) REFERENCES users(id)
 );
+
+DROP TABLE IF EXISTS instances;
+
+CREATE TABLE instances (
+    id TEXT PRIMARY KEY NOT NULL,
+    sir TEXT NOT NULL,
+    user TEXT NOT NULL,
+    FOREIGN KEY(sir) REFERENCES requests(id),
+    FOREIGN KEY(user) REFERENCES users(id)
+);
