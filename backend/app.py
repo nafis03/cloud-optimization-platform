@@ -41,7 +41,8 @@ def get_access_and_secret(username):
 
 @app.route('/launch', methods=['POST'])
 def launch():
-    access_key, secret_key = get_access_and_secret('tommyc')
+    data = request.get_json()
+    access_key, secret_key = get_access_and_secret(data['username'])
     session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key)
@@ -59,7 +60,8 @@ def launch():
         'MarketType': 'spot',
         'SpotOptions': {
             'MaxPrice': '.05',
-            'SpotInstanceType': 'one-time',
+            'SpotInstanceType': 'persistent',
+            'InstanceInterruptionBehavior': 'stop'
         }
     },
     )
@@ -231,29 +233,38 @@ def poll_for_terminations():
     return jsonify( message= "Success",
                     statusCode= 200), 200
 
-@app.route('/stopInstance')
-def stopInstance():
+@app.route('/stopInstance', methods=['POST'])
+def stopInstance(): 
     data = request.get_json()
+    access_key, secret_key = get_access_and_secret(data['username'])
+    session = boto3.Session(
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key)
     ec2_resource = session.client('ec2', region_name='us-west-2')
     response = ec2_resource.stop_instances(
-    InstanceIds=[
-        data['instanceID'],
-    ]
-    )
+        InstanceIds=[data['instanceID'],],
+        Hibernate=False,
+        DryRun=False,
+        Force=True
+        )
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= response), 200
 
 
-@app.route('/terminateInstance')
+@app.route('/terminateInstance', methods=['POST'])
 def terminateInstance():
     data = request.get_json()
+    access_key, secret_key = get_access_and_secret(data['username'])
+    session = boto3.Session(
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key)
     ec2_resource = session.client('ec2', region_name='us-west-2')
     response = ec2_resource.terminate_instances(
     InstanceIds=[
         data['instanceID'],
     ],
-    DryRun=False
+        DryRun=False
     )
     return jsonify( message= "Success",
                     statusCode= 200,
