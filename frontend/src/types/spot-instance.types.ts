@@ -5,11 +5,11 @@ export interface SpotInstance {
 }
 
 export enum ImageType {
-    LINUX = 'amazon_linux',
-    MACOS = 'macos',
-    UBUNTU = 'ubuntu',
-    WINDOWS = 'windows',
-    REDHAT = 'redhat_linux',
+    LINUX = 'AWSLinux',
+    MACOS = 'MacOS',
+    UBUNTU = 'Ubuntu',
+    WINDOWS = 'Windows',
+    REDHAT = 'RedhatLinux',
 }
 
 export const ImageTypeLabels = {

@@ -75,7 +75,7 @@ export default function ManagementPage() {
                 onClose={() => setModalOpen(false)}
                 title="Create a new Spot Instance"
             >
-                <CreateInstanceForm onCreate={create} />
+                <CreateInstanceForm onCreate={create} status={createInstanceStatus} />
             </Modal>
             <Dialog
                 opened={
