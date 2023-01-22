@@ -1,7 +1,8 @@
 import { Button, Container, Dialog, Flex, Grid, Modal, Text, Title } from "@mantine/core";
+import { useLocalStorage } from "@mantine/hooks";
 import { IconCheck, IconPlus, IconX } from "@tabler/icons";
 import { useEffect, useState } from "react";
-import { createSpotInstance, getSpotInstances } from "../api/spot-instance.api";
+import { createSpotInstance, getSpotInstances, terminateInstance } from "../api/spot-instance.api";
 import CreateInstanceForm from "../components/CreateInstanceForm";
 import SpotInstancesList from "../components/SpotInstancesList";
 import { CreateSpotInstanceRequest, SpotInstance } from "../types/spot-instance.types";
@@ -11,12 +12,13 @@ export default function ManagementPage() {
     const [spotInstances, setSpotInstances] = useState<SpotInstance[]>();
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [createInstanceStatus, setCreateInstanceStatus] = useState<RequestStatus>('idle');
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [terminateStatus, setTerminateStatus] = useState<RequestStatus>('idle');
+    const [username] = useLocalStorage({ key: 'username-aws' });
 
     const create = async (inputs: CreateSpotInstanceRequest) => {
         setCreateInstanceStatus('loading');
         try {
-            await createSpotInstance(inputs);
+            await createSpotInstance(inputs, username);
             setCreateInstanceStatus('succeeded');
         } catch (e) {
             console.log(e);
@@ -24,11 +26,21 @@ export default function ManagementPage() {
         }
     }
 
+    const terminate = async (instance: SpotInstance) => {
+        setTerminateStatus('loading');
+        try {
+            await terminateInstance(instance, username);
+            setTerminateStatus('succeeded');
+        } catch (e) {
+            console.log(e);
+            setTerminateStatus('failed');
+        }
+    };
+
     useEffect(() => {
         if (!spotInstances) {
             getSpotInstances()
                 .then(instances => {
-                    console.log(instances);
                     setSpotInstances(instances);
                 });
         }
@@ -55,7 +67,7 @@ export default function ManagementPage() {
                             Create new Instance
                         </Button>
                     </Flex>
-                    { spotInstances && <SpotInstancesList spotInstances={spotInstances} /> }
+                    { spotInstances && <SpotInstancesList spotInstances={spotInstances} onTerminate={terminate} /> }
                 </Grid.Col>
             </Grid>
             <Modal
@@ -66,7 +78,12 @@ export default function ManagementPage() {
                 <CreateInstanceForm onCreate={create} />
             </Modal>
             <Dialog
-                opened={createInstanceStatus === 'succeeded' || createInstanceStatus === 'failed'}
+                opened={
+                    createInstanceStatus === 'succeeded' 
+                    || createInstanceStatus === 'failed'
+                    || terminateStatus === 'succeeded'
+                    || terminateStatus === 'failed'
+                }
                 withCloseButton
                 onClose={() => setCreateInstanceStatus('idle')}
                 size="lg"
@@ -85,6 +102,22 @@ export default function ManagementPage() {
                         <IconX color="red" />
                         <Text size="sm">
                             Instance creation failed
+                        </Text>
+                    </Flex>
+                )}
+                { terminateStatus === 'succeeded' && (
+                    <Flex align="center" gap={20}>
+                        <IconCheck color="green" />
+                        <Text size="sm">
+                            Instance successfully terminated
+                        </Text>
+                    </Flex>
+                )}
+                { terminateStatus === 'failed' && (
+                    <Flex align="center" gap={10}>
+                        <IconX color="red" />
+                        <Text size="sm">
+                            The instance failed to terminate
                         </Text>
                     </Flex>
                 )}

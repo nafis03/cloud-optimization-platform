@@ -7,6 +7,8 @@ export const getSpotInstances = async (): Promise<SpotInstance[]> => {
 
     const res = await result.json();
 
+    console.log(res.data);
+
     return res.data.map((x: any) => {
         return {
             id: x.id,
@@ -29,6 +31,24 @@ export const createSpotInstance = async (input: CreateSpotInstanceRequest, usern
     };
 
     const result = await fetch('/launch', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers,
+    });
+
+    if (result.status !== 200) throw new Error('request failed');
+};
+
+export const terminateInstance = async (instance: SpotInstance, username: string) => {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const body = {
+        instanceID: instance.id,
+        username,
+    };
+
+    const result = await fetch('/terminateInstance', {
         method: 'POST',
         body: JSON.stringify(body),
         headers,
