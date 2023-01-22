@@ -231,7 +231,7 @@ def poll_for_terminations():
     return jsonify( message= "Success",
                     statusCode= 200), 200
 
-@app.route('/stopInstance')
+@app.route('/stopInstance', methods=['POST'])
 def stopInstance():
     data = request.get_json()
     ec2_resource = session.client('ec2', region_name='us-west-2')
@@ -245,7 +245,7 @@ def stopInstance():
                     data= response), 200
 
 
-@app.route('/terminateInstance')
+@app.route('/terminateInstance', methods=['POST'])
 def terminateInstance():
     data = request.get_json()
     ec2_resource = session.client('ec2', region_name='us-west-2')
@@ -261,12 +261,11 @@ def terminateInstance():
 
 # Search product filter. This will reduce the amount of data returned by the
 # get_products function of the Pricing API
-FLT = '[{{"Field": "tenancy", "Value": "shared", "Type": "TERM_MATCH"}},'\
-      '{{"Field": "operatingSystem", "Value": "{o}", "Type": "TERM_MATCH"}},'\
-      '{{"Field": "preInstalledSw", "Value": "NA", "Type": "TERM_MATCH"}},'\
+FLT = '{{"Field": "operatingSystem", "Value": "{o}", "Type": "TERM_MATCH"}},'\
       '{{"Field": "instanceType", "Value": "{t}", "Type": "TERM_MATCH"}},'\
-      '{{"Field": "location", "Value": "{r}", "Type": "TERM_MATCH"}},'\
-      '{{"Field": "capacitystatus", "Value": "Used", "Type": "TERM_MATCH"}}]'
+      '{{"Field": "location", "Value": "{r}", "Type": "TERM_MATCH"}}]'
+
+f = FLT.format(t=instance_type, r=region, o=os)
 
 
 # Get current AWS price for an on-demand instance
