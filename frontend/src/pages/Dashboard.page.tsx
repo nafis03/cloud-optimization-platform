@@ -86,7 +86,7 @@ export default function DashboardPage() {
                     <Grid gutter={1} sx={{ alignItems: 'stretch'}}>
                         <Grid.Col span={12} md={8}>
                             <Card shadow="sm" p="lg" radius="md" withBorder
-                                sx={{ height: '450px', width: '600px' }}
+                                sx={{ height: '500px', width: '600px' }}
                             >
                                 <Title order={3}>Projected Costs</Title>
                                 <Container

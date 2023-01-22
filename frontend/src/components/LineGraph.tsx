@@ -50,7 +50,7 @@ export default function LineGraph({ data }: LineGraphProps) {
                 {
                     anchor: 'bottom-right',
                     direction: 'column',
-                    itemWidth: 100,
+                    itemWidth: 200,
                     itemHeight: 200,
                 }
             ]}
