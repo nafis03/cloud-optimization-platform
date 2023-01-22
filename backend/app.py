@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request, jsonify
+from flask import request, jsonify, session
 import boto3
 
 import sqlite3
@@ -24,7 +24,7 @@ def writeUserDB(id: str, secret: str) -> None:
 def hello():
     return '<h1>Hello, World!</h1>'
 
-@app.route('/login', methods=['POST'])
+@app.route('/launch', methods=['POST'])
 def login():
     data = request.get_json()
     session = boto3.Session(
@@ -50,16 +50,14 @@ def login():
     },
     )
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
-    print(spot_request_id)
-    print("")
-    print(response)
-    # res = ec2_resource.describe_spot_instance_requests(
-    #     DryRun=False,
-    #     SpotInstanceRequestIds=[
-    #         'sir-i3fygyxh',
-    #     ],
-    # )
-    # print(res)
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
+            (spot_request_id, 'open', session['username'])
+    )
+    conn.commit()
+    conn.close()
     return jsonify(isError= False,
                     message= "Success",
                     statusCode= 200,
@@ -79,4 +77,16 @@ def db():
                     data= usersData), 200
 
 
+def poll_for_terminations(ec2_resource):
+    conn = get_db_connection()
+    requests = conn.execute('SELECT * FROM requests').fetchall()
+    sids = []
+    for spot_request in requests:
+        sid = spot_request['id']
+        sids.append(sid)
 
+    res = ec2_resource.describe_spot_instance_requests(
+        DryRun=False,
+        SpotInstanceRequestIds=sids,
+    )
+    print(res)

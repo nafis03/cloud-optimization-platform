@@ -14,7 +14,6 @@ CREATE TABLE requests (
     id TEXT PRIMARY KEY NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     current_status TEXT CHECK( current_status IN ('open','active','failed', 'closed', 'disabled', 'cancelled') ) NOT NULL,
-    secret_key TEXT NOT NULL,
     user TEXT NOT NULL,
     FOREIGN KEY(user) REFERENCES users(id)
 );
