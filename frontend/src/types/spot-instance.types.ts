@@ -1,7 +1,8 @@
 export interface SpotInstance {
     id: string;
     imageName: string;
-    timeStamp: Date;
+    instanceSize: InstanceType;
+    timestamp: Date;
 }
 
 export enum ImageType {
@@ -10,6 +11,12 @@ export enum ImageType {
     UBUNTU = 'Ubuntu',
     WINDOWS = 'Windows',
     REDHAT = 'RedhatLinux',
+}
+
+export interface CostRates {
+    onDemandPerHour: number;
+    spotPerHour: number;
+    totalSavedPerHour: number;
 }
 
 export const ImageTypeLabels = {

@@ -28,15 +28,9 @@ export default function LineGraph({ data }: LineGraphProps) {
         };
     });
 
-    console.log(formattedData);
-
     return (
         <ResponsiveLine
             xFormat="time:%Y-%m-%d"
-            // xScale={{
-            //     type: 'time',
-            //     format: '%Y-%m-%d',
-            // }}
             yScale={{
                 type: 'linear',
             }}
