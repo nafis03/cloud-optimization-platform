@@ -1,34 +1,12 @@
 from flask import Flask
 from flask import request, jsonify
 import json
+from polling import poll_for_status
+import threading
+import time
 import boto3
 
 import sqlite3
-
-app = Flask(__name__)
-
-session = ""
-
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def writeUserDB(username, access_key: str, secret_key: str) -> None:
-    conn = get_db_connection()
-    curr = conn.cursor()
-    curr.execute("INSERT INTO users (access_key, secret_key, username) VALUES (?, ?, ?)",
-            (access_key, secret_key, username))
-    conn.commit()
-    conn.close()
-
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    writeUserDB(data['username'], data['access_key'], data['secret_key'])
-    return jsonify(isError= False,
-                    message= "Success",
-                    statusCode= 200), 200
 
 def get_access_and_secret(username):
     conn = get_db_connection()
@@ -38,6 +16,40 @@ def get_access_and_secret(username):
     
     conn.close()
     return user['access_key'], user['secret_key']
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def checker_thread():
+    print("Get thready/")
+    time.sleep(10)
+    access_key, secret_key = get_access_and_secret('tommyc')
+    while True:
+        conn = get_db_connection()
+        print("Polling!")
+        poll_for_status(access_key, secret_key, conn)
+        conn.close()
+        time.sleep(30)
+
+def writeUserDB(username, access_key: str, secret_key: str) -> None:
+    conn = get_db_connection()
+    curr = conn.cursor()
+    curr.execute("INSERT INTO users (access_key, secret_key, username) VALUES (?, ?, ?)",
+            (access_key, secret_key, username))
+    conn.commit()
+    conn.close()
+
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    writeUserDB(data['username'], data['access_key'], data['secret_key'])
+    return jsonify(isError= False,
+                    message= "Success",
+                    statusCode= 200), 200
 
 @app.route('/launch', methods=['POST'])
 def launch():
@@ -67,11 +79,11 @@ def launch():
     )
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
     conn = get_db_connection()
-    cur = conn.cursor()
+    curr = conn.cursor()
 
-    cur.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
-            (spot_request_id, 'open', 'tommyc')
-    )
+    query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
+    curr.execute(query)
+
     conn.commit()
     conn.close()
     return jsonify(isError= False,
@@ -114,127 +126,8 @@ def dbInstances():
                     statusCode= 200,
                     data= reqsData), 200
 
-@app.route('/testTerm')
-def poll_for_terminations():
-    access_key, secret_key = get_access_and_secret('tommyc')
-    session = boto3.Session(
-    aws_access_key_id=access_key,
-    aws_secret_access_key=secret_key)
-    ec2_resource = session.client('ec2', region_name='us-west-2')
-    conn = get_db_connection()
-    requests = conn.execute('SELECT * FROM requests').fetchall()
-    sids = []
-    for spot_request in requests:
-        sid = spot_request['id']
-        sids.append(sid)
-
-    res = ec2_resource.describe_spot_instance_requests(
-        DryRun=False,
-        SpotInstanceRequestIds=sids,
-    )
-    conn = get_db_connection()
-    curr = conn.cursor()
-    allReqs = res['SpotInstanceRequests']
-    for sir in allReqs:
-        status = sir['Status']
-        if status['Code'] == 'fulfilled':
-            curr.execute("INSERT INTO instances (id, sir, user) VALUES (?, ?, ?)",(sir['InstanceId'], sir['SpotInstanceRequestId'], 'tommyc'))
-            curr.execute("UPDATE requests SET current_status = 'active' WHERE id=?", (sir['SpotInstanceRequestId'],))
-            # update db with instance
-            continue
-        if status['Code'] == 'capacity-not-available':
-            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
-            response = ec2_resource.run_instances(
-                MaxCount= 1,
-                MinCount=1,
-                InstanceType='t2.micro',
-                ImageId='ami-095413544ce52437d',
-                KeyName='awskey',
-                Monitoring= {
-                    'Enabled':True,
-                },
-                InstanceMarketOptions={
-                    'MarketType': 'spot',
-                    'SpotOptions': {
-                        'MaxPrice': '.05',
-                        'SpotInstanceType': 'one-time',
-                    }
-                },
-            )
-            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
-
-            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
-                    (spot_request_id, 'open', 'tommyc')
-            )
-            continue
-        if status['Code'] == 'instance-terminated-by-user' or status['Code'] == 'spot-instance-terminated-by-user':
-            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
-            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
-            # maybe do some computation
-            continue
-        if status['Code'] == 'instance-terminated-no-capacity':
-            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
-            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
-            response = ec2_resource.run_instances(
-                MaxCount= 1,
-                MinCount=1,
-                InstanceType='t2.micro',
-                ImageId='ami-095413544ce52437d',
-                KeyName='awskey',
-                Monitoring= {
-                    'Enabled':True,
-                },
-                InstanceMarketOptions={
-                    'MarketType': 'spot',
-                    'SpotOptions': {
-                        'MaxPrice': '.05',
-                        'SpotInstanceType': 'one-time',
-                    }
-                },
-            )
-            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
-
-            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
-                    (spot_request_id, 'open', 'tommyc')
-            )
-            continue
-        if status['Code'] == 'marked-for-termination':
-            # relaunch instance
-            continue
-        if status['Code'] == 'instance-terminated-by-experiment':
-            # relaunch instance
-            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
-            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
-            response = ec2_resource.run_instances(
-                MaxCount= 1,
-                MinCount=1,
-                InstanceType='t2.micro',
-                ImageId='ami-095413544ce52437d',
-                KeyName='awskey',
-                Monitoring= {
-                    'Enabled':True,
-                },
-                InstanceMarketOptions={
-                    'MarketType': 'spot',
-                    'SpotOptions': {
-                        'MaxPrice': '.05',
-                        'SpotInstanceType': 'one-time',
-                    }
-                },
-            )
-            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
-
-            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
-                    (spot_request_id, 'open', 'tommyc')
-            )
-
-    conn.commit()
-    conn.close()
-    return jsonify( message= "Success",
-                    statusCode= 200), 200
-
-@app.route('/stopInstance', methods=['POST'])
-def stopInstance(): 
+@app.route('/stopInstance')
+def stopInstance():
     data = request.get_json()
     access_key, secret_key = get_access_and_secret(data['username'])
     session = boto3.Session(
@@ -300,3 +193,8 @@ def getEC2Price():
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= price), 200
+                    
+x = threading.Thread(target=checker_thread)
+x.start()
+
+app.run(threaded=False,debug=False, port=3002)
