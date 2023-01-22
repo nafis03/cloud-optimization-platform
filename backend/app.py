@@ -211,10 +211,17 @@ def dbInstances():
     conn = get_db_connection()
     reqs = conn.execute('SELECT * FROM instances').fetchall()
     reqsData = []
+    
     for req in reqs:
-        reqsData.append(req['id'])
-        reqsData.append(req["imageName"])
-        reqsData.append(req["created"])
+        query2 = "SELECT * FROM requests WHERE sir= '" + req['sir'] + "'"
+        req2 = conn.execute(query2).fetchone()
+        retObject = {
+            "id": req['id'],
+            "imageName": req2['imageName'],
+            "instanceSize": req2['size']
+        }
+        reqsData.append(retObject)
+        reqsData
         
     conn.close()
     return jsonify( message= "Success",
