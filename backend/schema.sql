@@ -27,7 +27,7 @@ CREATE TABLE instances (
     FOREIGN KEY(user) REFERENCES users(id)
 );
 
-DROP TABLE IF EXISTS spots;
+DROP TABLE IF EXISTS spot;
 
 CREATE TABLE spot (
     id TEXT PRIMARY KEY NOT NULL,
