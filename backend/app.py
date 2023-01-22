@@ -292,10 +292,13 @@ def getEC2Price():
 
 @app.route('/dashboard')
 def dashboard():
+    # get credentials
     data = request.get_json()
     user = data["username"]
     user_id = get_user_id(user)
     access_key, secret_key = get_access_and_secret(user)
+
+    # get the instanceSize
     conn = get_db_connection()
     curr = conn.cursor()
     query = "SELECT size, price FROM requests WHERE user= " + str(user_id)
