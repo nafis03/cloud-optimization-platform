@@ -148,8 +148,7 @@ def launch():
         DryRun=False,
         SpotInstanceRequestIds=[spot_request_id],
     )
-
-    print(response["SpotInstanceRequests"][0]["SpotPrice"])
+    spotPrice = response["SpotInstanceRequests"][0]["SpotPrice"]
 
 
     conn = get_db_connection()
@@ -158,8 +157,8 @@ def launch():
     query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
     curr.execute(query)
 
-    # curr.execute("INSERT INTO spots (id, os, size, price) VALUES (?, ?, ?, ?)",
-    #         (spot_request_id, data["operatingSystem"], data["instanceSize"], ))
+    curr.execute("INSERT INTO spot (id, os, size, price) VALUES (?, ?, ?, ?)",
+            (spot_request_id, data["operatingSystem"], data["instanceSize"], spotPrice))
 
     conn.commit()
     conn.close()
