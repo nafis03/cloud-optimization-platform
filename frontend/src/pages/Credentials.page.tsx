@@ -1,4 +1,4 @@
-import { Button, Card, Center, Container, Loader, PasswordInput, Text, Title } from "@mantine/core";
+import { Button, Card, Center, Container, Loader, PasswordInput, Space, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ export default function CredentialsPage() {
     const navigate = useNavigate();
     const form = useForm({
         initialValues: {
+            userName: '',
             accessKeyId: '',
             secretAccessKey: '',
         },
@@ -37,18 +38,27 @@ export default function CredentialsPage() {
                 <Card shadow="sm" p="lg" radius="md" withBorder w={400}>
                     <Title order={3}>Enter your credentials</Title>
                     <form onSubmit={form.onSubmit(submitForm)}>
+                        <TextInput
+                            placeholder="Username"
+                            label="Username"
+                            withAsterisk
+                            {...form.getInputProps('userName')}
+                        />
+                        <Space h="xl" />
                         <PasswordInput
                             placeholder="ACCESS_KEY_ID"
                             label="Access Key Id"
                             withAsterisk
                             {...form.getInputProps('accessKeyId')}
                         />
+                        <Space h="xl" />
                         <PasswordInput
                             placeholder="SECRET_ACCESS_KEY"
                             label="Secret Access Key"
                             withAsterisk
                             {...form.getInputProps('secretAccessKey')}
                         />
+                        <Space h="xl" />
                         <Button
                             type="submit"
                         >

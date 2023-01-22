@@ -3,6 +3,7 @@ import { AWSCredentials } from "../types/credentials.types";
 
 export const login = async (credentials: AWSCredentials) => {
     const body = {
+        'username': credentials.userName,
         'access_key': credentials.accessKeyId,
         'secret_key': credentials.secretAccessKey,
     };
