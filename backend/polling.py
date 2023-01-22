@@ -29,6 +29,7 @@ def poll_for_status(access_key, secret_key, conn, user_id):
                 curr.execute(query)
                 spotPrice = sir["SpotPrice"]
                 query = "UPDATE requests SET price= '" + spotPrice + "' WHERE id= '" + sir['SpotInstanceRequestId'] + "'"
+                curr.execute(query)
             # update db with instance
             continue
         if status['Code'] == 'instance-terminated-by-user' or status['Code'] == 'spot-instance-terminated-by-user':
@@ -67,7 +68,7 @@ def poll_for_status(access_key, secret_key, conn, user_id):
             )
             spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
 
-            query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " + "'tommyc', '" + imageName + "', '" + instanceSize + "')"
+            query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " +str(user_id) + ", '" + imageName + "', '" + instanceSize + "')"
             curr.execute(query)
             continue
         if status['Code'] == 'marked-for-termination':
@@ -103,7 +104,7 @@ def poll_for_status(access_key, secret_key, conn, user_id):
             )
             spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
 
-            query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " + "'tommyc', '" + imageName + "', '" + instanceSize + "')"
+            query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " +str(user_id) + ", '" + imageName + "', '" + instanceSize + "')"
             curr.execute(query)
             continue
 

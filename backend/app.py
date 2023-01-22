@@ -34,6 +34,13 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_user_id(username):
+    conn = get_db_connection()
+    curr = conn.cursor()
+    query = "SELECT id FROM users WHERE username= '" + username + "'"
+    users = curr.execute(query).fetchone()
+    return users['id']
+
 def get_all_users():
     conn = get_db_connection()
     curr = conn.cursor()
@@ -64,8 +71,11 @@ def writeUserDB(username, access_key: str, secret_key: str) -> None:
     conn.close()
 
 # Get current AWS price for an on-demand instance
-def get_price(region, instance, os):
-    client = boto3.client('pricing', region_name='us-east-1')
+def get_price(region, instance, os, access_key, secret_key):
+    session = boto3.Session(
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key)
+    client = session.client('pricing', region_name='us-east-1')
     data = client.get_products(
         ServiceCode='AmazonEC2', 
         Filters=[
@@ -93,9 +103,11 @@ def get_price(region, instance, os):
         id1 = list(od)[0]
         id2 = list(od[id1]['priceDimensions'])[0]
         prices.append(od[id1]['priceDimensions'][id2]['pricePerUnit']['USD'])
-    
-    print(prices)
-    return prices
+    pricesVal = []
+    for price in prices:
+        val = float(price)
+        pricesVal.append(val)
+    return max(pricesVal)
 
 app = Flask(__name__)
 
@@ -155,11 +167,11 @@ def launch():
     frontEndResponse = {
         "sir": spot_request_id
     }
-
+    user_id = get_user_id(data['username'])
     conn = get_db_connection()
     curr = conn.cursor()
 
-    query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " + "'tommyc', '" +  data["imageName"] + "', '" + data['instanceSize'] + "')"
+    query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " + str(user_id) + ", '" +  data["imageName"] + "', '" + data['instanceSize'] + "')"
     curr.execute(query)
 
     conn.commit()
@@ -201,6 +213,9 @@ def dbInstances():
     reqsData = []
     for req in reqs:
         reqsData.append(req['id'])
+        reqsData.append(req["imageName"])
+        reqsData.append(req["created"])
+        
     conn.close()
     return jsonify( message= "Success",
                     statusCode= 200,
@@ -248,26 +263,45 @@ def terminateInstance():
     curr.execute(query)
     query = "DELETE FROM requests WHERE id= '" + sir + "'"
     curr.execute(query)
+    conn.commit()
+    conn.close()
     resp2 = ec2_resource.cancel_spot_instance_requests(
         DryRun=False,
         SpotInstanceRequestIds=[sir]
     )
-    conn.commit()
-    conn.close()
     return jsonify( message= "success",
                     statusCode= 200,
                     data= response), 200
 
 @app.route('/getEC2Price', methods=['POST'])
 def getEC2Price():
-    data = request.get_json
-
+    data = request.get_json()
+    access_key, secret_key = get_access_and_secret(data['username'])
     # Get current price for a given instance, region and os
-    price = get_price('US East (N. Virginia)', data["instanceSize"], data["operatingSystem"])
-    print(price)
+    price = get_price('US East (N. Virginia)', data["instanceSize"], data["operatingSystem"], access_key, secret_key)
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= price), 200
+
+@app.route('/dashboard')
+def dashboard():
+    data = request.get_json()
+    user = data["username"]
+    user_id = get_user_id(user)
+    access_key, secret_key = get_access_and_secret(user)
+    conn = get_db_connection()
+    curr = conn.cursor()
+    query = "SELECT size, price FROM requests WHERE user= " + str(user_id)
+    sirs = curr.execute(query).fetchall()
+    totalSavedPerHour = 0
+    for sir in sirs:
+        fullPrice = get_price('US East (N. Virginia)', sir['size'], "Linux", access_key, secret_key)
+        totalSavedPerHour += (fullPrice - float(sir['price']))
+    retData = {"totalSavedPerHour":totalSavedPerHour}
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= retData), 200
+
                     
 x = threading.Thread(target=checker_thread)
 x.start()
