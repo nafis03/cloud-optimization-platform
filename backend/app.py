@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request, jsonify
-
+import json
 import boto3
 
 import sqlite3
@@ -269,3 +269,32 @@ def terminateInstance():
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= response), 200
+
+# Search product filter. This will reduce the amount of data returned by the
+# get_products function of the Pricing API
+FLT = '{{"Field": "operatingSystem", "Value": "{o}", "Type": "TERM_MATCH"}},'\
+      '{{"Field": "instanceType", "Value": "{t}", "Type": "TERM_MATCH"}},'\
+      '{{"Field": "location", "Value": "{r}", "Type": "TERM_MATCH"}}]'
+
+f = FLT.format(t=instance_type, r=region, o=os)
+
+
+# Get current AWS price for an on-demand instance
+def get_price(region, instance, os):
+    client = boto3.client('pricing', region_name='us-east-1')
+    f = FLT.format(r=region, t=instance, o=os)
+    data = client.get_products(ServiceCode='AmazonEC2', Filters=json.loads(f))
+    print(data)
+    od = json.loads(data['PriceList'][0])['terms']['OnDemand']
+    id1 = list(od)[0]
+    id2 = list(od[id1]['priceDimensions'])[0]
+    return od[id1]['priceDimensions'][id2]['pricePerUnit']['USD']
+
+@app.route('/getEC2Price', methods=['POST'])
+def getEC2Price():
+    # Get current price for a given instance, region and os
+    price = get_price('US East (N. Virginia)', 't2.micro', 'Ubuntu')
+    print(price)
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= price), 200
