@@ -1,5 +1,6 @@
-import { Button, Card, Center, Container, Loader, PasswordInput, Space, Text, TextInput, Title } from "@mantine/core";
+import { Button, Card, Center, Container, PasswordInput, Space, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useLocalStorage } from "@mantine/hooks";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/auth.api";
@@ -11,6 +12,7 @@ export default function CredentialsPage() {
     const { setUserCredentials } = useContext(UserContext);
     const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
     const navigate = useNavigate();
+    const [_, setUsername] = useLocalStorage({ key: 'username-aws' });
     const form = useForm({
         initialValues: {
             userName: '',
@@ -23,6 +25,7 @@ export default function CredentialsPage() {
         setUserCredentials(values);
         setRequestStatus('loading');
         try {
+            setUsername(values.userName);
             await login(values);
             setRequestStatus('succeeded');
             navigate('/manage');

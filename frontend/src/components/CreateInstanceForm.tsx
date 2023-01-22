@@ -1,6 +1,5 @@
 import { Button, Select, Space, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { createSpotInstance } from "../api/spot-instance.api";
 import { CreateSpotInstanceRequest, ImageTypeLabels, InstanceType } from "../types/spot-instance.types";
 
 
@@ -25,13 +24,7 @@ export default function CreateInstanceForm({ onCreate }: CreateInstanceFormProps
     });
 
     const submitForm = async (values: any) => {
-        onCreate(values)
-        try {
-            await createSpotInstance({
-                ...values,
-            });
-        } catch (e) {
-        }
+        onCreate(values);
     };
 
     return (

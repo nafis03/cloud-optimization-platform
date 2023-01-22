@@ -7,25 +7,25 @@ export const getSpotInstances = async (): Promise<SpotInstance[]> => {
 
     const res = await result.json();
 
-    return [
-        {
-            id: 'test',
-            name: 'My Instance',
-            timeStamp: new Date(),
+    return res.data.map((x: any) => {
+        return {
+            id: x.id,
+            imageName: x.imageName,
+            timeStamp: new Date(x.timeStamp),
         }
-    ]
-    return res.data;
+    });
 };
 
-export const createSpotInstance = async (input: CreateSpotInstanceRequest) => {
+export const createSpotInstance = async (input: CreateSpotInstanceRequest, username: string) => {
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     
     const body = {
-        'image_name': input.imageName,
-        'workload_name': input.workloadName,
-        'ami_type': input.amiType,
-        'instance_type': input.instanceType,
+        imageName: input.imageName,
+        workloadName: input.workloadName,
+        operatingSystem: input.amiType,
+        instanceSize: input.instanceType,
+        username
     };
 
     const result = await fetch('/launch', {
