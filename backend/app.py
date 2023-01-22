@@ -218,7 +218,8 @@ def dbInstances():
         retObject = {
             "id": req['id'],
             "imageName": req2['imageName'],
-            "instanceSize": req2['size']
+            "instanceSize": req2['size'],
+            "timestamp": req2['created']
         }
         reqsData.append(retObject)
         reqsData
