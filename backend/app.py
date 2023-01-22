@@ -291,7 +291,7 @@ def getEC2Price():
                     statusCode= 200,
                     data= price), 200
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['POST'])
 def dashboard():
     # get credentials
     data = request.get_json()

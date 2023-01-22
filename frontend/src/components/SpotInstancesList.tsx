@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Container, Modal, Table, Text } from "@mantine/core";
+import { ActionIcon, Button, Container, Flex, Modal, Table, Text } from "@mantine/core";
 import { SpotInstance } from "../types/spot-instance.types";
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -57,13 +57,15 @@ export default function SpotInstancesList({ spotInstances, onTerminate }: SpotIn
                 <Text>
                     { `Are you sure you want to terminate the instance "${selectedInstance?.imageName}"?` }
                 </Text>
-                <Button onClick={() => {
-                    if (selectedInstance) onTerminate(selectedInstance);
-                }} color="red">Terminate</Button>
-                <Button onClick={() => {
-                    setModalOpen(false);
-                    setSelectedInstance(undefined);
-                }} variant="light">Terminate</Button>
+                <Flex>
+                    <Button onClick={() => {
+                        if (selectedInstance) onTerminate(selectedInstance);
+                    }} color="red">Terminate</Button>
+                    <Button onClick={() => {
+                        setModalOpen(false);
+                        setSelectedInstance(undefined);
+                    }} variant="light">Cancel</Button>
+                </Flex>
             </Modal>
         </Container>
     );

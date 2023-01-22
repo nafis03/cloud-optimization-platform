@@ -57,9 +57,20 @@ export const terminateInstance = async (instance: SpotInstance, username: string
     if (result.status !== 200) throw new Error('request failed');
 };
 
-export const getCostAnalysis = async (): Promise<any> => {
-    const result = await fetch('/getEC2Price');
-    
+export const getCostAnalysis = async (username: string): Promise<any> => {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const body = {
+        username,
+    };
+
+    const result = await fetch('/dashboard', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers,
+    });
+
     if (result.status !== 200) throw new Error('request failed');
 
     const res = await result.json();

@@ -1,5 +1,7 @@
 import { Button, Card, Center, Container, Flex, Grid, Modal, Stack, Text, Title } from "@mantine/core";
-import { useState } from "react";
+import { useLocalStorage } from "@mantine/hooks";
+import { useEffect, useState } from "react";
+import { getCostAnalysis } from "../api/spot-instance.api";
 import LineGraph from "../components/LineGraph";
 import { CostAnalysis } from "../types/dashboard-types";
 
@@ -31,7 +33,16 @@ const data: CostAnalysis[] = [
 ];
 
 export default function DashboardPage() {
-    const [costAnalysisData, setCostAnalysisData] = useState<CostAnalysis[]>(data);
+    const [costAnalysisData, setCostAnalysisData] = useState<CostAnalysis[]>();
+    const [username] = useLocalStorage({ key: 'username-aws' });
+
+    useEffect(() => {
+        if (!costAnalysisData && username) {
+            getCostAnalysis(username)
+                // .then();
+            // setCostAnalysisData();
+        }
+    }, [costAnalysisData]);
 
     return (
         <Container h="100vh">
@@ -51,9 +62,11 @@ export default function DashboardPage() {
                                 <Container
                                     sx={{ height: '400px', width: '500px' }}
                                 >
-                                    <LineGraph 
-                                        data={costAnalysisData}
-                                    />
+                                    { costAnalysisData && (
+                                        <LineGraph 
+                                            data={costAnalysisData}
+                                        />
+                                    ) }
                                 </Container>
                             </Card>
                         </Grid.Col>
