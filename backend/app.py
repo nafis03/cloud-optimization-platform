@@ -276,9 +276,6 @@ FLT = '{{"Field": "operatingSystem", "Value": "{o}", "Type": "TERM_MATCH"}},'\
       '{{"Field": "instanceType", "Value": "{t}", "Type": "TERM_MATCH"}},'\
       '{{"Field": "location", "Value": "{r}", "Type": "TERM_MATCH"}}]'
 
-f = FLT.format(t=instance_type, r=region, o=os)
-
-
 # Get current AWS price for an on-demand instance
 def get_price(region, instance, os):
     client = boto3.client('pricing', region_name='us-east-1')
