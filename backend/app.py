@@ -62,6 +62,40 @@ def writeUserDB(username, access_key: str, secret_key: str) -> None:
     conn.commit()
     conn.close()
 
+# Get current AWS price for an on-demand instance
+def get_price(region, instance, os):
+    client = boto3.client('pricing', region_name='us-east-1')
+    data = client.get_products(
+        ServiceCode='AmazonEC2', 
+        Filters=[
+            {
+            'Type': 'TERM_MATCH',
+            'Field': 'instanceType',
+            'Value': str(instance)
+            },
+            {
+            'Type': 'TERM_MATCH',
+            'Field': 'operatingSystem',
+            'Value': str(os)
+            },
+            {
+            'Type': 'TERM_MATCH',
+            'Field': 'location',
+            'Value': str(region)
+            }
+        ])
+    
+    prices = []
+
+    for val in data['PriceList']:
+        od = json.loads(val)['terms']['OnDemand']
+        id1 = list(od)[0]
+        id2 = list(od[id1]['priceDimensions'])[0]
+        prices.append(od[id1]['priceDimensions'][id2]['pricePerUnit']['USD'])
+    
+    print(prices)
+    return prices
+
 app = Flask(__name__)
 
 @app.route('/login', methods=['POST'])
@@ -198,40 +232,6 @@ def terminateInstance():
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= response), 200
-
-# Get current AWS price for an on-demand instance
-def get_price(region, instance, os):
-    client = boto3.client('pricing', region_name='us-east-1')
-    data = client.get_products(
-        ServiceCode='AmazonEC2', 
-        Filters=[
-            {
-            'Type': 'TERM_MATCH',
-            'Field': 'instanceType',
-            'Value': str(instance)
-            },
-            {
-            'Type': 'TERM_MATCH',
-            'Field': 'operatingSystem',
-            'Value': str(os)
-            },
-            {
-            'Type': 'TERM_MATCH',
-            'Field': 'location',
-            'Value': str(region)
-            }
-        ])
-    
-    prices = []
-
-    for val in data['PriceList']:
-        od = json.loads(val)['terms']['OnDemand']
-        id1 = list(od)[0]
-        id2 = list(od[id1]['priceDimensions'])[0]
-        prices.append(od[id1]['priceDimensions'][id2]['pricePerUnit']['USD'])
-    
-    print(prices)
-    return prices
 
 @app.route('/getEC2Price', methods=['POST'])
 def getEC2Price():
