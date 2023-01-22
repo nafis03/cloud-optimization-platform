@@ -143,8 +143,15 @@ def launch():
     },
     )
 
-    print(response)
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
+    response = ec2_resource.describe_spot_instance_requests(
+        DryRun=False,
+        SpotInstanceRequestIds=[spot_request_id],
+    )
+
+    print(response["SpotInstanceRequests"][0]["SpotPrice"])
+
+
     conn = get_db_connection()
     curr = conn.cursor()
 
@@ -156,6 +163,7 @@ def launch():
 
     conn.commit()
     conn.close()
+
     return jsonify(isError= False,
                     message= "Success",
                     statusCode= 200), 200
