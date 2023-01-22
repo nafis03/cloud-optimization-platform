@@ -18,6 +18,7 @@ os  = {
     "Windows" : "ami-0fc4f8e1c20b02190",
     "Ubuntu" : "ami-00874d747dde814fa",
     "RedhatLinux" : "ami-0176fddd9698c4c3a",
+    "Game": "ami-02adefdded55e3e68"
 }
 
 def get_access_and_secret(username):
@@ -137,24 +138,50 @@ def launch():
     ec2_resource = session.client('ec2', region_name='us-east-1')
 
     # start instance 
-    response = ec2_resource.run_instances(
-        MaxCount= 1,
-        MinCount=1,
-        InstanceType=data['instanceSize'],
-        ImageId=os[data["operatingSystem"]],
-        KeyName='awskey',
-        Monitoring= {
-            'Enabled':True,
-        },
-        InstanceMarketOptions={
-        'MarketType': 'spot',
-        'SpotOptions': {
-            'MaxPrice': '.05',
-            'SpotInstanceType': 'persistent',
-            'InstanceInterruptionBehavior': 'stop'
-        }
-    },
-    )
+    if data["operatingSystem"] == "Game":
+        UserDataScript = '''
+        #!/bin/bash
+        cd TIC-TAC-TOE-GAME/
+        npm start
+        '''
+        response = ec2_resource.run_instances(
+            MaxCount= 1,
+            MinCount=1,
+            InstanceType=data['instanceSize'],
+            ImageId=os[data["operatingSystem"]],
+            KeyName='awskey',
+            Monitoring= {
+                'Enabled':True,
+            },
+            InstanceMarketOptions={
+                'MarketType': 'spot',
+                'SpotOptions': {
+                    'MaxPrice': '.05',
+                    'SpotInstanceType': 'persistent',
+                    'InstanceInterruptionBehavior': 'stop'
+                }
+            },
+            UserData=UserDataScript,
+        )
+    else:
+        response = ec2_resource.run_instances(
+            MaxCount= 1,
+            MinCount=1,
+            InstanceType=data['instanceSize'],
+            ImageId=os[data["workload"]],
+            KeyName='awskey',
+            Monitoring= {
+                'Enabled':True,
+            },
+            InstanceMarketOptions={
+                'MarketType': 'spot',
+                'SpotOptions': {
+                    'MaxPrice': '.05',
+                    'SpotInstanceType': 'persistent',
+                    'InstanceInterruptionBehavior': 'stop'
+                }
+            },
+        )
 
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
     # spotPrice = response["SpotInstanceRequests"][0]["SpotPrice"]
