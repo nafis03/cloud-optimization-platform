@@ -1,7 +1,7 @@
 import { CreateSpotInstanceRequest, SpotInstance } from "../types/spot-instance.types";
 
 export const getSpotInstances = async (): Promise<SpotInstance[]> => {
-    const result = await fetch('/db/users');
+    const result = await fetch('/db/instances');
     
     if (result.status !== 200) throw new Error('request failed');
 
@@ -55,4 +55,14 @@ export const terminateInstance = async (instance: SpotInstance, username: string
     });
     
     if (result.status !== 200) throw new Error('request failed');
+};
+
+export const getCostAnalysis = async (): Promise<any> => {
+    const result = await fetch('/getEC2Price');
+    
+    if (result.status !== 200) throw new Error('request failed');
+
+    const res = await result.json();
+
+    console.log(res.data);
 };

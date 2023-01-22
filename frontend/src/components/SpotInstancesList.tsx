@@ -22,6 +22,7 @@ export default function SpotInstancesList({ spotInstances, onTerminate }: SpotIn
             <td>{spotInstance.id}</td>
             <td>{spotInstance.imageName}</td>
             <td>{dayjs(spotInstance.timeStamp).format('lll')}</td>
+            <td>{spotInstance.instanceSize}</td>
             <td>
                 <ActionIcon onClick={() => {
                         setModalOpen(true);
@@ -43,6 +44,7 @@ export default function SpotInstancesList({ spotInstances, onTerminate }: SpotIn
                         <th>ID</th>
                         <th>Name</th>
                         <th>Time Created</th>
+                        <th>Instance Type</th>
                         <th>Terminate</th>
                     </tr>
                 </thead>
@@ -51,7 +53,6 @@ export default function SpotInstancesList({ spotInstances, onTerminate }: SpotIn
             <Modal
                 opened={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title={`Are you sure you want to terminate the instance "${selectedInstance?.imageName}"?`}
             >
                 <Text>
                     { `Are you sure you want to terminate the instance "${selectedInstance?.imageName}"?` }

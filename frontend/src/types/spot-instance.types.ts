@@ -1,6 +1,7 @@
 export interface SpotInstance {
     id: string;
     imageName: string;
+    instanceSize: InstanceType;
     timeStamp: Date;
 }
 

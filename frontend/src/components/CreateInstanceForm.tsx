@@ -46,7 +46,7 @@ export default function CreateInstanceForm({ onCreate, status }: CreateInstanceF
             />
             <Space h="xl" />
             <Select
-                label="AMI Type"
+                label="Operating System"
                 placeholder="Choose one"
                 data={Object.values(ImageTypeLabels)}
                 withAsterisk
