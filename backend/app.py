@@ -37,10 +37,10 @@ def get_db_connection():
 def get_all_users():
     conn = get_db_connection()
     curr = conn.cursor()
-    users = curr.execute("SELECT access_key, secret_key FROM users").fetchall()
+    users = curr.execute("SELECT id, access_key, secret_key FROM users").fetchall()
     keys = []
     for user in users:
-        keys.append((user['access_key'], user['secret_key']))
+        keys.append((user['access_key'], user['secret_key'], user['id']))
     return keys
 
 def checker_thread():
@@ -50,9 +50,10 @@ def checker_thread():
         for key in keys:
             access_key = key[0]
             secret_key = key[1]
-            poll_for_status(access_key, secret_key, conn)
+            user_id = key[2]
+            poll_for_status(access_key, secret_key, conn, user_id)
         conn.close()
-        time.sleep(30)
+        time.sleep(12)
 
 def writeUserDB(username, access_key: str, secret_key: str) -> None:
     conn = get_db_connection()
@@ -144,26 +145,22 @@ def launch():
     )
 
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
-    response = ec2_resource.describe_spot_instance_requests(
-        DryRun=False,
-        SpotInstanceRequestIds=[spot_request_id],
-    )
-    spotPrice = response["SpotInstanceRequests"][0]["SpotPrice"]
-    time = response["SpotInstanceRequests"][0]["Createtime"]
+    # spotPrice = response["SpotInstanceRequests"][0]["SpotPrice"]
+    # time = response["SpotInstanceRequests"][0]["Createtime"]
+    # frontEndResponse = {
+    #     "imageName": data["imageName"],
+    #     "imageID": spot_request_id,
+    #     'timestamp': time
+    # }
     frontEndResponse = {
-        "imageName": data["imageName"],
-        "imageID": spot_request_id,
-        'timestamp': time
+        "sir": spot_request_id
     }
 
     conn = get_db_connection()
     curr = conn.cursor()
 
-    query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
+    query = "INSERT INTO requests (id, user, imageName, size) VALUES ('" + spot_request_id + "', " + "'tommyc', '" +  data["imageName"] + "', '" + data['instanceSize'] + "')"
     curr.execute(query)
-
-    curr.execute("INSERT INTO spot (id, os, size, price, imagename, imagetime) VALUES (?, ?, ?, ?, ?, ?)",
-            (spot_request_id, data["operatingSystem"], data["instanceSize"], spotPrice, data["imageName"], str(time)))
 
     conn.commit()
     conn.close()
@@ -216,7 +213,7 @@ def stopInstance():
     session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key)
-    ec2_resource = session.client('ec2', region_name='us-west-2')
+    ec2_resource = session.client('ec2', region_name='us-east-1')
     response = ec2_resource.stop_instances(
         InstanceIds=[data['instanceID'],],
         Hibernate=False,
@@ -235,14 +232,29 @@ def terminateInstance():
     session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key)
-    ec2_resource = session.client('ec2', region_name='us-west-2')
+    ec2_resource = session.client('ec2', region_name='us-east-1')
     response = ec2_resource.terminate_instances(
     InstanceIds=[
         data['instanceID'],
     ],
         DryRun=False
     )
-    return jsonify( message= "Success",
+    conn = get_db_connection()
+    curr = conn.cursor()
+    query = "SELECT sir FROM instances WHERE id= '" + data['instanceID'] + "'"
+    resp = curr.execute(query).fetchone()
+    sir = resp['sir']
+    query = "DELETE FROM instances WHERE id= '" + data['instanceID'] + "'"
+    curr.execute(query)
+    query = "DELETE FROM requests WHERE id= '" + sir + "'"
+    curr.execute(query)
+    resp2 = ec2_resource.cancel_spot_instance_requests(
+        DryRun=False,
+        SpotInstanceRequestIds=[sir]
+    )
+    conn.commit()
+    conn.close()
+    return jsonify( message= "success",
                     statusCode= 200,
                     data= response), 200
 

@@ -14,6 +14,9 @@ CREATE TABLE requests (
     id TEXT PRIMARY KEY NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user TEXT NOT NULL,
+    imageName TEXT NOT NULL,
+    price TEXT,
+    size TEXT NOT NULL,
     FOREIGN KEY(user) REFERENCES users(id)
 );
 
@@ -25,15 +28,4 @@ CREATE TABLE instances (
     user TEXT NOT NULL,
     FOREIGN KEY(sir) REFERENCES requests(id),
     FOREIGN KEY(user) REFERENCES users(id)
-);
-
-DROP TABLE IF EXISTS spot;
-
-CREATE TABLE spot (
-    id TEXT PRIMARY KEY NOT NULL,
-    os TEXT NOT NULL,
-    size TEXT NOT NULL,
-    price TEXT NOT NULL,
-    imagename TEXT NOT NULL,
-    imagetime TEXT NOT NULL,
 );
