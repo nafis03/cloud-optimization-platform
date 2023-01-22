@@ -108,12 +108,17 @@ def launch():
         }
     },
     )
+
+    print(response)
     spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
     conn = get_db_connection()
     curr = conn.cursor()
 
     query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
     curr.execute(query)
+
+    # curr.execute("INSERT INTO spots (id, os, size, price) VALUES (?, ?, ?, ?)",
+    #         (spot_request_id, data["operatingSystem"], data["instanceSize"], ))
 
     conn.commit()
     conn.close()

@@ -26,3 +26,12 @@ CREATE TABLE instances (
     FOREIGN KEY(sir) REFERENCES requests(id),
     FOREIGN KEY(user) REFERENCES users(id)
 );
+
+DROP TABLE IF EXISTS spots;
+
+CREATE TABLE spot (
+    id TEXT PRIMARY KEY NOT NULL,
+    os TEXT NOT NULL,
+    size TEXT NOT NULL,
+    PRICE TEXT NOT NULL,
+)
