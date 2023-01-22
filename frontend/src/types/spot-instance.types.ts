@@ -49,9 +49,13 @@ export enum InstanceType {
     T2_SMALL = 't2.small',
 }
 
+export enum Workload {
+    GAME = 'Game',
+}
+
 export interface CreateSpotInstanceRequest {
     imageName: string;
-    workloadName?: string;
     amiType: ImageType;
     instanceType: InstanceType;
+    workload: Workload;
 }

@@ -15,8 +15,6 @@ export default function ManagementPage() {
     const [terminateStatus, setTerminateStatus] = useState<RequestStatus>('idle');
     const [username] = useLocalStorage({ key: 'username-aws' });
 
-    console.log(spotInstances)
-
     const create = async (inputs: CreateSpotInstanceRequest) => {
         setCreateInstanceStatus('loading');
         try {

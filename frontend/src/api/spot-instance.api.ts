@@ -23,9 +23,9 @@ export const createSpotInstance = async (input: CreateSpotInstanceRequest, usern
     
     const body = {
         imageName: input.imageName,
-        workloadName: input.workloadName,
         operatingSystem: input.amiType,
         instanceSize: input.instanceType,
+        workload: input.workload,
         username
     };
 

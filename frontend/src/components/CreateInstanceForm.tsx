@@ -1,7 +1,7 @@
 import { Button, Select, Space, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { RequestStatus } from "../pages/Credentials.page";
-import { CreateSpotInstanceRequest, ImageTypeLabels, InstanceType } from "../types/spot-instance.types";
+import { CreateSpotInstanceRequest, ImageTypeLabels, InstanceType, Workload } from "../types/spot-instance.types";
 
 
 interface CreateInstanceFormProps {
@@ -13,15 +13,15 @@ export default function CreateInstanceForm({ onCreate, status }: CreateInstanceF
     const form = useForm({
         initialValues: {
             imageName: '',
-            workloadName: '',
             amiType: '',
             instanceType: '',
+            workload: '',
         },
         validate: {
             imageName: isNotEmpty('Please provide a name'),
-            workloadName: isNotEmpty('Please provide a name'),
             amiType: isNotEmpty('Please choose an image type'),
             instanceType: isNotEmpty('Please choose an instance type'),
+            workload: isNotEmpty('Please choose a workload'),
         }
     });
 
@@ -38,13 +38,6 @@ export default function CreateInstanceForm({ onCreate, status }: CreateInstanceF
                 {...form.getInputProps('imageName')}
             />
             <Space h="xl" />
-            <TextInput
-                placeholder="My Workload"
-                label="Workload Name"
-                withAsterisk
-                {...form.getInputProps('workloadName')}
-            />
-            <Space h="xl" />
             <Select
                 label="Operating System"
                 placeholder="Choose one"
@@ -59,6 +52,14 @@ export default function CreateInstanceForm({ onCreate, status }: CreateInstanceF
                 data={Object.values(InstanceType)}
                 withAsterisk
                 {...form.getInputProps('instanceType')}
+            />
+            <Space h="xl" />
+            <Select
+                label="Workload"
+                placeholder="Choose one"
+                data={Object.values(Workload)}
+                withAsterisk
+                {...form.getInputProps('workload')}
             />
             <Space h="xl" />
             <Button type="submit" loading={status === 'loading'}>

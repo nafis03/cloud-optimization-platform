@@ -101,9 +101,9 @@ export default function AppHeader({ links }: HeaderResponsiveProps) {
   ));
 
   return (
-    <Header height={HEADER_HEIGHT} className={classes.root}>
+    <Header height={HEADER_HEIGHT} className={classes.root} bg="yellow">
       <Container className={classes.header}>
-        <Title order={3}>Cost Optimization Platform</Title>
+        <Title order={3}>Cloud Optimization Platform</Title>
         <Group spacing={5} className={classes.links}>
           {items}
         </Group>
