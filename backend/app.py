@@ -213,7 +213,7 @@ def dbInstances():
     reqsData = []
     
     for req in reqs:
-        query2 = "SELECT * FROM requests WHERE sir= '" + req['sir'] + "'"
+        query2 = "SELECT * FROM requests WHERE id= '" + req['sir'] + "'"
         req2 = conn.execute(query2).fetchone()
         retObject = {
             "id": req['id'],
@@ -300,11 +300,18 @@ def dashboard():
     curr = conn.cursor()
     query = "SELECT size, price FROM requests WHERE user= " + str(user_id)
     sirs = curr.execute(query).fetchall()
-    totalSavedPerHour = 0
+    totalSavedPerHour = 0.0
+    onDemandPerHour = 0.0
+    spotPerHour = 0.0
     for sir in sirs:
         fullPrice = get_price('US East (N. Virginia)', sir['size'], "Linux", access_key, secret_key)
         totalSavedPerHour += (fullPrice - float(sir['price']))
-    retData = {"totalSavedPerHour":totalSavedPerHour}
+        onDemandPerHour += fullPrice
+        spotPerHour += float(sir['price'])
+
+    retData = {"totalSavedPerHour":totalSavedPerHour,
+                "onDemandPerHour": onDemandPerHour,
+                "spotPerHour":spotPerHour}
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= retData), 200
