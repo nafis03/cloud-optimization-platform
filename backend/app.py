@@ -7,6 +7,8 @@ import sqlite3
 
 app = Flask(__name__)
 
+session = ""
+
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
@@ -113,3 +115,31 @@ def poll_for_terminations(ec2_resource):
         SpotInstanceRequestIds=sids,
     )
     print(res)
+
+@app.route('/stopInstance')
+def stopInstance():
+    data = request.get_json()
+    ec2_resource = session.client('ec2', region_name='us-west-2')
+    response = ec2_resource.stop_instances(
+    InstanceIds=[
+        data['instanceID'],
+    ]
+    )
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= response), 200
+
+
+@app.route('/terminateInstance')
+def terminateInstance():
+    data = request.get_json()
+    ec2_resource = session.client('ec2', region_name='us-west-2')
+    response = ec2_resource.terminate_instances(
+    InstanceIds=[
+        data['instanceID'],
+    ],
+    DryRun=False
+    )
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= response), 200
