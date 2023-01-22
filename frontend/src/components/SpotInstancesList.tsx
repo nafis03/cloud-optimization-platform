@@ -1,5 +1,8 @@
 import { Container, Table } from "@mantine/core";
 import { SpotInstance } from "../types/spot-instance.types";
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+dayjs.extend(localizedFormat);
 
 interface SpotInstancesListProps {
     spotInstances: SpotInstance[];
@@ -12,7 +15,7 @@ export default function SpotInstancesList({ spotInstances }: SpotInstancesListPr
         >
             <td>{spotInstance.id}</td>
             <td>{spotInstance.name}</td>
-            {/* <td>{spotInstance}</td> */}
+            <td>{dayjs(spotInstance.timeStamp).format('lll')}</td>
         </tr>
     ));
 
