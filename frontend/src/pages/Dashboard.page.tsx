@@ -1,4 +1,4 @@
-import { Button, Card, Center, Container, Flex, Grid, Modal, Title } from "@mantine/core";
+import { Button, Card, Center, Container, Flex, Grid, Modal, Stack, Text, Title } from "@mantine/core";
 import { useState } from "react";
 import LineGraph from "../components/LineGraph";
 import { CostAnalysis } from "../types/dashboard-types";
@@ -61,7 +61,17 @@ export default function DashboardPage() {
                             <Card shadow="sm" p="lg" radius="md" withBorder
                                 sx={{ height: '100%' }}
                             >
-                                
+                                <Stack align="center">
+                                    <Title order={4}>
+                                        Projected Savings
+                                    </Title>
+                                    <Text
+                                        fw={700}
+                                        fz={70}
+                                    >
+                                        35%
+                                    </Text>
+                                </Stack>
                             </Card>
                         </Grid.Col>
                     </Grid>
