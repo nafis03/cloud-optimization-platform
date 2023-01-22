@@ -24,7 +24,7 @@ export default function CredentialsPage() {
         try {
             await login(values);
             setRequestStatus('succeeded');
-            navigate('/dashboard');
+            navigate('/manage');
         } catch (e) {
             setRequestStatus('failed');
             console.log(e);
