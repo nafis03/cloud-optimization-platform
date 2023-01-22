@@ -1,33 +1,36 @@
-import { Button, NumberInput, Select, Space, TextInput } from "@mantine/core";
-import { isInRange, isNotEmpty, useForm } from "@mantine/form";
+import { Button, Select, Space, TextInput } from "@mantine/core";
+import { isNotEmpty, useForm } from "@mantine/form";
 import { createSpotInstance } from "../api/spot-instance.api";
-import { ImageTypeLabels } from "../types/spot-instance.types";
+import { CreateSpotInstanceRequest, ImageTypeLabels, InstanceType } from "../types/spot-instance.types";
 
 
-export default function CreateInstanceForm() {
+interface CreateInstanceFormProps {
+    onCreate: (inputs: CreateSpotInstanceRequest) => Promise<void>;
+}
+
+export default function CreateInstanceForm({ onCreate }: CreateInstanceFormProps) {
     const form = useForm({
         initialValues: {
             imageName: '',
             workloadName: '',
             amiType: '',
-            port: 3000,
+            instanceType: '',
         },
         validate: {
             imageName: isNotEmpty('Please provide a name'),
             workloadName: isNotEmpty('Please provide a name'),
             amiType: isNotEmpty('Please choose an image type'),
-            port: isInRange({ min: 1, max: 65535 }, 'Port number must be between 1 to 65535')
+            instanceType: isNotEmpty('Please choose an instance type'),
         }
     });
 
     const submitForm = async (values: any) => {
+        onCreate(values)
         try {
             await createSpotInstance({
-                port: Number(values.port),
                 ...values,
             });
         } catch (e) {
-
         }
     };
 
@@ -55,11 +58,12 @@ export default function CreateInstanceForm() {
                 {...form.getInputProps('amiType')}
             />
             <Space h="xl" />
-            <NumberInput
-                type="number"
-                placeholder="ex: 3000"
-                label="Port Number"
-                {...form.getInputProps('port')}
+            <Select
+                label="Instance Type"
+                placeholder="Choose one"
+                data={Object.values(InstanceType)}
+                withAsterisk
+                {...form.getInputProps('instanceType')}
             />
             <Space h="xl" />
             <Button type="submit">

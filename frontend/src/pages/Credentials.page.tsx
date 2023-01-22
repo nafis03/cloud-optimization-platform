@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../api/auth.api";
 import { UserContext } from "../App";
 
-export type RequestStatus = 'idle' | 'failed' | 'loading' | 'succeeded'
+export type RequestStatus = 'idle' | 'failed' | 'loading' | 'succeeded';
 
 export default function CredentialsPage() {
     const { setUserCredentials } = useContext(UserContext);
@@ -61,12 +61,12 @@ export default function CredentialsPage() {
                         <Space h="xl" />
                         <Button
                             type="submit"
+                            loading={requestStatus === 'loading'}
                         >
                             Enter
                         </Button>
                         { requestStatus === 'failed' && <Text color="red">Request Failed</Text> }
                     </form>
-                    { requestStatus === 'loading' && <Loader />}
                 </Card>
             </Center>
         </Container>

@@ -35,9 +35,16 @@ export const ImageTypeLabels = {
     },
 };
 
+export enum InstanceType {
+    T1_MICRO = 't1.micro',
+    T2_NANO = 't2.nano',
+    T2_MICRO = 't2.micro',
+    T2_SMALL = 't2.small',
+}
+
 export interface CreateSpotInstanceRequest {
     imageName: string;
-    workloadName: string;
+    workloadName?: string;
     amiType: ImageType;
-    port?: number;
+    instanceType: InstanceType;
 }

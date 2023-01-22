@@ -25,7 +25,7 @@ export const createSpotInstance = async (input: CreateSpotInstanceRequest) => {
         'image_name': input.imageName,
         'workload_name': input.workloadName,
         'ami_type': input.amiType,
-        'port': input.port,
+        'instance_type': input.instanceType,
     };
 
     const result = await fetch('/launch', {
