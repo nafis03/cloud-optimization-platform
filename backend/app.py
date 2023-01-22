@@ -5,8 +5,20 @@ from polling import poll_for_status
 import threading
 import time
 import boto3
-
 import sqlite3
+from enum import Enum
+
+app = Flask(__name__)
+
+session = ""
+
+os  = {
+    "AWSLinux" : "ami-0b5eea76982371e91",
+    "MacOS" : "ami-0fe12b543f1354e5c",
+    "Windows" : "ami-0fc4f8e1c20b02190",
+    "Ubuntu" : "ami-00874d747dde814fa",
+    "RedhatLinux" : "ami-0176fddd9698c4c3a",
+}
 
 def get_access_and_secret(username):
     conn = get_db_connection()
@@ -62,17 +74,27 @@ def login():
 
 @app.route('/launch', methods=['POST'])
 def launch():
+    # get the request data that has:
+    #  username for credentials
+    #  operating system
+    #  size of instance
     data = request.get_json()
+
+    # get credentials
     access_key, secret_key = get_access_and_secret(data['username'])
     session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key)
-    ec2_resource = session.client('ec2', region_name='us-west-2')
+
+    # initialize boto3 client
+    ec2_resource = session.client('ec2', region_name='us-east-1')
+
+    # start instance 
     response = ec2_resource.run_instances(
         MaxCount= 1,
         MinCount=1,
-        InstanceType='t2.micro',
-        ImageId='ami-095413544ce52437d',
+        InstanceType=data['instanceSize'],
+        ImageId=os[data["operatingSystem"]],
         KeyName='awskey',
         Monitoring= {
             'Enabled':True,
@@ -188,14 +210,27 @@ def get_price(region, instance, os):
             'Field': 'operatingSystem',
             'Value': str(os)
             },
+            {
+            'Type': 'TERM_MATCH',
+            'Field': 'location',
+            'Value': str(region)
+            }
         ])
-    od = json.loads(data['PriceList'][0])['terms']['OnDemand']
-    id1 = list(od)[0]
-    id2 = list(od[id1]['priceDimensions'])[0]
-    return od[id1]['priceDimensions'][id2]['pricePerUnit']['USD']
+    
+    prices = []
+
+    for val in data['PriceList']:
+        od = json.loads(val)['terms']['OnDemand']
+        id1 = list(od)[0]
+        id2 = list(od[id1]['priceDimensions'])[0]
+        prices.append(od[id1]['priceDimensions'][id2]['pricePerUnit']['USD'])
+    
+    print(prices)
+    return prices
 
 @app.route('/getEC2Price', methods=['POST'])
 def getEC2Price():
+
     # Get current price for a given instance, region and os
     price = get_price('US East (N. Virginia)', 't2.micro', 'Linux')
     print(price)
