@@ -213,6 +213,8 @@ def dbInstances():
     reqsData = []
     for req in reqs:
         reqsData.append(req['id'])
+        reqsData.append(req["imageName"])
+        reqsData.append(req["created"])
         
     conn.close()
     return jsonify( message= "Success",
