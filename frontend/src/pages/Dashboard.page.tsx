@@ -1,25 +1,19 @@
-import { Container, Grid } from "@mantine/core";
-import { useEffect, useState } from "react";
-import SpotInstancesList from "../components/SpotInstancesList";
-import { SpotInstance } from "../types/spot-instance.types";
-
+import { Button, Container, Flex, Grid, Modal, Title } from "@mantine/core";
 
 export default function DashboardPage() {
-    const [spotInstances, setSpotInstances] = useState<SpotInstance[]>([]);
-    
-
-    useEffect(() => {
-        // setSpotInstances([]);
-    });
 
     return (
         <Container h="100vh">
             <Grid>
                 <Grid.Col span={12}>
-                    <SpotInstancesList spotInstances={spotInstances} />
-                </Grid.Col>
-                <Grid.Col>
-                    
+                    <Flex mt={40} mb={20} justify="space-between">
+                        <Title>Dashboard</Title>
+                        {/* <Button
+                            leftIcon={<IconPlus />}
+                            onClick={() => setModalOpen(true)}>
+                            Create new Instance
+                        </Button> */}
+                    </Flex>
                 </Grid.Col>
             </Grid>
         </Container>
