@@ -21,7 +21,7 @@ export default function SpotInstancesList({ spotInstances, onTerminate }: SpotIn
         >
             <td>{spotInstance.id}</td>
             <td>{spotInstance.imageName}</td>
-            <td>{dayjs(spotInstance.timeStamp).format('lll')}</td>
+            <td>{dayjs(spotInstance.timestamp).format('lll')}</td>
             <td>{spotInstance.instanceSize}</td>
             <td>
                 <ActionIcon onClick={() => {

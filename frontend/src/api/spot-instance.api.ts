@@ -7,13 +7,12 @@ export const getSpotInstances = async (): Promise<SpotInstance[]> => {
 
     const res = await result.json();
 
-    console.log(res.data);
-
     return res.data.map((x: any) => {
         return {
             id: x.id,
             imageName: x.imageName,
-            timeStamp: new Date(x.timeStamp),
+            timestamp: new Date(x.timestamp),
+            instanceSize: x.instanceSize,
         }
     });
 };
