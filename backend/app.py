@@ -1,5 +1,6 @@
 from flask import Flask
-from flask import request, jsonify, session
+from flask import request, jsonify
+
 import boto3
 
 import sqlite3
@@ -11,26 +12,37 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-def writeUserDB(id: str, secret: str) -> None:
+def writeUserDB(username, access_key: str, secret_key: str) -> None:
     conn = get_db_connection()
-    conn.cursor()
-    conn.execute("INSERT INTO users (access_key, secret_key, username) VALUES (?, ?, ?)",
-            (f"{id}", f"{secret}", 'f{id}'))
+    curr = conn.cursor()
+    curr.execute("INSERT INTO users (access_key, secret_key, username) VALUES (?, ?, ?)",
+            (access_key, secret_key, username))
     conn.commit()
     conn.close()
 
-
-@app.route('/')
-def hello():
-    return '<h1>Hello, World!</h1>'
-
-@app.route('/launch', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    writeUserDB(data['username'], data['access_key'], data['secret_key'])
+    return jsonify(isError= False,
+                    message= "Success",
+                    statusCode= 200), 200
+
+def get_access_and_secret(username):
+    conn = get_db_connection()
+    curr = conn.cursor()
+    user = curr.execute("SELECT * FROM users WHERE username=? LIMIT 1",
+            (username,)).fetchone()
+    
+    conn.close()
+    return user['access_key'], user['secret_key']
+
+@app.route('/launch', methods=['POST'])
+def launch():
+    access_key, secret_key = get_access_and_secret('tommyc')
     session = boto3.Session(
-    aws_access_key_id=data['access_key'],
-    aws_secret_access_key=data['secret_key'])
-    writeUserDB(data['access_key'], data['secret_key'])
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key)
     ec2_resource = session.client('ec2', region_name='us-west-2')
     response = ec2_resource.run_instances(
         MaxCount= 1,
@@ -54,17 +66,16 @@ def login():
     cur = conn.cursor()
 
     cur.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
-            (spot_request_id, 'open', session['username'])
+            (spot_request_id, 'open', 'tommyc')
     )
     conn.commit()
     conn.close()
     return jsonify(isError= False,
                     message= "Success",
-                    statusCode= 200,
-                    data= data), 200
+                    statusCode= 200), 200
 
-@app.route('/db')
-def db():
+@app.route('/db/users')
+def dbUsers():
     conn = get_db_connection()
     users = conn.execute('SELECT * FROM users').fetchall()
     usersData = {}
@@ -75,6 +86,18 @@ def db():
     return jsonify( message= "Success",
                     statusCode= 200,
                     data= usersData), 200
+
+@app.route('/db/requests')
+def dbReqs():
+    conn = get_db_connection()
+    reqs = conn.execute('SELECT * FROM requests').fetchall()
+    reqsData = []
+    for req in reqs:
+        reqsData.append(req['id'])
+    conn.close()
+    return jsonify( message= "Success",
+                    statusCode= 200,
+                    data= reqsData), 200
 
 
 def poll_for_terminations(ec2_resource):
