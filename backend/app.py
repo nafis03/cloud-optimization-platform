@@ -149,7 +149,12 @@ def launch():
         SpotInstanceRequestIds=[spot_request_id],
     )
     spotPrice = response["SpotInstanceRequests"][0]["SpotPrice"]
-
+    time = response["SpotInstanceRequests"][0]["Createtime"]
+    frontEndResponse = {
+        "imageName": data["imageName"],
+        "imageID": spot_request_id,
+        'timestamp': time
+    }
 
     conn = get_db_connection()
     curr = conn.cursor()
@@ -157,15 +162,16 @@ def launch():
     query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
     curr.execute(query)
 
-    curr.execute("INSERT INTO spot (id, os, size, price) VALUES (?, ?, ?, ?)",
-            (spot_request_id, data["operatingSystem"], data["instanceSize"], spotPrice))
+    curr.execute("INSERT INTO spot (id, os, size, price, imagename, imagetime) VALUES (?, ?, ?, ?, ?, ?)",
+            (spot_request_id, data["operatingSystem"], data["instanceSize"], spotPrice, data["imageName"], str(time)))
 
     conn.commit()
     conn.close()
 
     return jsonify(isError= False,
                     message= "Success",
-                    statusCode= 200), 200
+                    statusCode= 200,
+                    data=frontEndResponse), 200
 
 @app.route('/db/users')
 def dbUsers():

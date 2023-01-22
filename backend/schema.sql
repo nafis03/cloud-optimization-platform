@@ -33,5 +33,7 @@ CREATE TABLE spot (
     id TEXT PRIMARY KEY NOT NULL,
     os TEXT NOT NULL,
     size TEXT NOT NULL,
-    PRICE TEXT NOT NULL
+    price TEXT NOT NULL,
+    imagename TEXT NOT NULL,
+    imagetime TEXT NOT NULL,
 );
