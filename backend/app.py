@@ -141,13 +141,60 @@ def poll_for_terminations():
             # update db with instance
             continue
         if status['Code'] == 'capacity-not-available':
-            # Re make request
+            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
+            response = ec2_resource.run_instances(
+                MaxCount= 1,
+                MinCount=1,
+                InstanceType='t2.micro',
+                ImageId='ami-095413544ce52437d',
+                KeyName='awskey',
+                Monitoring= {
+                    'Enabled':True,
+                },
+                InstanceMarketOptions={
+                    'MarketType': 'spot',
+                    'SpotOptions': {
+                        'MaxPrice': '.05',
+                        'SpotInstanceType': 'one-time',
+                    }
+                },
+            )
+            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
+
+            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
+                    (spot_request_id, 'open', 'tommyc')
+            )
             continue
         if status['Code'] == 'instance-terminated-by-user' or status['Code'] == 'spot-instance-terminated-by-user':
-            # delete from table
+            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
+            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
+            # maybe do some computation
             continue
         if status['Code'] == 'instance-terminated-no-capacity':
-            # relaunch instance
+            curr.execute("DELETE FROM instances WHERE id=?", (sir['InstanceId'],))
+            curr.execute("DELETE FROM requests WHERE id=?", (sir['SpotInstanceRequestId'],))
+            response = ec2_resource.run_instances(
+                MaxCount= 1,
+                MinCount=1,
+                InstanceType='t2.micro',
+                ImageId='ami-095413544ce52437d',
+                KeyName='awskey',
+                Monitoring= {
+                    'Enabled':True,
+                },
+                InstanceMarketOptions={
+                    'MarketType': 'spot',
+                    'SpotOptions': {
+                        'MaxPrice': '.05',
+                        'SpotInstanceType': 'one-time',
+                    }
+                },
+            )
+            spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
+
+            curr.execute("INSERT INTO requests (id, current_status, user) VALUES (?, ?, ?)",
+                    (spot_request_id, 'open', 'tommyc')
+            )
             continue
         if status['Code'] == 'marked-for-termination':
             # relaunch instance
