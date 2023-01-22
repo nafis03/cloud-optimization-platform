@@ -1,2 +1,4 @@
-# COP
+# Cloud Optimization Platform
 nwHacks 2023 Project - Nafis, Kevin, Tommy, Angus
+
+The public cloud has grown increasingly more and more expensive in recent years. Cloud Optimization Platform leverages cloud native tools to help developers, organizations, universities, and enterprises reduce their cloud costs via spot instance usage. Spot Instances are offerings from major cloud providers that let the cloud service provide excess servers to customers at a significantly reduced cost, up to 90%. The only caveat with these spot instances, is that the cloud provider can take back these servers at any time, such as with excess demand. However, Cloud Optimization Platform allows users to leverage the reduced cost of spot instances, without the fear of their workloads being interrupted, by seamlessly starting up a new spot instance with all their saved data and work if the cloud provider issues the termination notice. Via a centralized management platform for users to view all their servers, COP shows users just how much money they can save from their cloud costs.
