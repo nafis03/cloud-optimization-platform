@@ -22,14 +22,23 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_all_users():
+    conn = get_db_connection()
+    curr = conn.cursor()
+    users = curr.execute("SELECT access_key, secret_key FROM users").fetchall()
+    keys = []
+    for user in users:
+        keys.append((user['access_key'], user['secret_key']))
+    return keys
+
 def checker_thread():
-    print("Get thready/")
-    time.sleep(10)
-    access_key, secret_key = get_access_and_secret('tommyc')
     while True:
+        keys = get_all_users()
         conn = get_db_connection()
-        print("Polling!")
-        poll_for_status(access_key, secret_key, conn)
+        for key in keys:
+            access_key = key[0]
+            secret_key = key[1]
+            poll_for_status(access_key, secret_key, conn)
         conn.close()
         time.sleep(30)
 

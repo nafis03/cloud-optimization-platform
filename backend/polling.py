@@ -28,16 +28,16 @@ def poll_for_status(access_key, secret_key, conn):
             # update db with instance
             continue
         if status['Code'] == 'instance-terminated-by-user' or status['Code'] == 'spot-instance-terminated-by-user':
-            query = "DELETE FROM instances WHERE id= " + sir['InstanceId']
+            query = "DELETE FROM instances WHERE id= '" + sir['InstanceId'] + "'"
             curr.execute(query)
-            query = "DELETE FROM requests WHERE id= " + sir['SpotInstanceRequestId']
+            query = "DELETE FROM requests WHERE id= '" + sir['SpotInstanceRequestId'] + "'"
             curr.execute(query)
             # maybe do some computation
             continue
         if status['Code'] == 'instance-stopped-no-capacity':
-            query = "DELETE FROM instances WHERE id= " + sir['InstanceId']
+            query = "DELETE FROM instances WHERE id= '" + sir['InstanceId'] + "'"
             curr.execute(query)
-            query = "DELETE FROM requests WHERE id= " + sir['SpotInstanceRequestId']
+            query = "DELETE FROM requests WHERE id= '" + sir['SpotInstanceRequestId'] + "'"
             curr.execute(query)
             response = ec2_resource.run_instances(
                 MaxCount= 1,
@@ -58,7 +58,7 @@ def poll_for_status(access_key, secret_key, conn):
             )
             spot_request_id = response['Instances'][0]['SpotInstanceRequestId']
 
-            query = "INSERT INTO requests (id, user) VALUES (" + spot_request_id + ", " + 'tommyc' + ")"
+            query = "INSERT INTO requests (id, user) VALUES ('" + spot_request_id + "', " + "'tommyc'" + ")"
             curr.execute(query)
             continue
         if status['Code'] == 'marked-for-termination':
