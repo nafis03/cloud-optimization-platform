@@ -248,9 +248,10 @@ def terminateInstance():
 
 @app.route('/getEC2Price', methods=['POST'])
 def getEC2Price():
+    data = request.get_json
 
     # Get current price for a given instance, region and os
-    price = get_price('US East (N. Virginia)', 't2.micro', 'Linux')
+    price = get_price('US East (N. Virginia)', data["instanceSize"], data["operatingSystem"])
     print(price)
     return jsonify( message= "Success",
                     statusCode= 200,
