@@ -1,4 +1,4 @@
-import { CreateSpotInstanceRequest, SpotInstance } from "../types/spot-instance.types";
+import { CostRates, CreateSpotInstanceRequest, SpotInstance } from "../types/spot-instance.types";
 
 export const getSpotInstances = async (): Promise<SpotInstance[]> => {
     const result = await fetch('/db/instances');
@@ -57,7 +57,7 @@ export const terminateInstance = async (instance: SpotInstance, username: string
     if (result.status !== 200) throw new Error('request failed');
 };
 
-export const getCostAnalysis = async (username: string): Promise<any> => {
+export const getCostAnalysis = async (username: string): Promise<CostRates> => {
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
 
@@ -75,5 +75,5 @@ export const getCostAnalysis = async (username: string): Promise<any> => {
 
     const res = await result.json();
 
-    console.log(res.data);
+    return res.data;
 };

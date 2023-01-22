@@ -13,6 +13,12 @@ export enum ImageType {
     REDHAT = 'RedhatLinux',
 }
 
+export interface CostRates {
+    onDemandPerHour: number;
+    spotPerHour: number;
+    totalSavedPerHour: number;
+}
+
 export const ImageTypeLabels = {
     [ImageType.LINUX]: {
         label: 'Amazon Linux',
